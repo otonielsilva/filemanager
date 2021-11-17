@@ -1,0 +1,202 @@
+openapi: 3.0.3
+servers:
+  - url: http://localhost:8080
+info:
+  title: File Management API (development)
+  description: Simple API management for file management
+  contact:
+    name: API Support
+    email: otonielsilva@gmail.com
+  license:
+    name: Apache 2.0
+  version: 1.0.0
+paths:
+  /files:
+    get:
+      tags:
+        - File Resource
+      description: List files in File Manager
+      parameters:
+        - name: page_number
+          description: Page Number
+          in: query
+          schema:
+            format: int32
+            type: integer
+        - name: page_size
+          description: Page Size
+          in: query
+          schema:
+            format: int32
+            type: integer
+      responses:
+        200:
+          description: List of files stored in paginated.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FileObject'
+    post:
+      tags:
+        - File Resource
+      description: Upload a new file to File Manager
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  format: binary
+                  type: string
+                  description: Binary file
+                fileName:
+                  type: string
+                  description: Name of the file
+      responses:
+        "200":
+          description: File metadata that was just uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileObject'
+
+  /files/{file_id}:
+    get:
+      tags:
+        - File Resource
+      description: Get a single file
+      parameters:
+        - name: file_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: File metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileObject'
+
+    put:
+      tags:
+        - File Resource
+      description: Upload a new version of the file
+      parameters:
+        - name: file_id
+          in: path
+          description: File Identifier
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  format: binary
+                  description: Binary file
+                  type: string
+                fileName:
+                  description: Name of the file
+                  type: string
+      responses:
+        200:
+          description: "File metadata"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileObject'
+
+    delete:
+      tags:
+        - File Resource
+      description: Deletes the file and its versions
+      parameters:
+        - name: file_id
+          in: path
+          description: File Identifier
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: File deleted
+
+
+  /files/{file_id}/file:
+    get:
+      tags:
+        - File Resource
+      description: Download file
+      parameters:
+        - name: file_id
+          in: path
+          required: true
+          description: File Identifier
+          schema:
+            type: string
+        - name: version
+          in: query
+          description: File version, if not provided, downloads the latest version.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Downloaded file
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  file:
+                    format: binary
+
+
+
+components:
+  schemas:
+    FileObject:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Internal ID to identify the file
+          example: "asdfasdf-a"
+        originalFileName:
+          type: string
+          description: name of the file uploaded
+          example: "file.jpg"
+        lastVersion:
+          type: integer
+          format: int32
+          description: Version of the latest upload
+          example: 1
+        size:
+          type: integer
+          format: int64
+          description: Size of the file in bytes
+          example: 5464266
+        checksum:
+          type: string
+          description: SHA-256 Hexadecimal of file content.
+          example: "d4f9bfe4ad7914949776dacd2a5b309d336ae4e8d480df32c9c4c826f14e4c5f"
+        createdAt:
+          description: when the file was first created.
+          type: string
+          format: date-time
+          example: "2020-11-17T00:48:02.598343"
+        updatedAt:
+          description: when the file was updated.
+          type: string
+          format: date-time
+          example: "2021-11-17T00:48:02.598343"
+     
+                 
+          

@@ -1,0 +1,47 @@
+version: '3.7'
+volumes:
+  mysqldata:
+  files_folder:
+networks:
+  filenetwork:
+    name: filenetwork
+    driver: bridge
+services:
+  mysql-db:
+    image: mysql:5.7
+    container_name: "mysql-db"
+    environment:
+      MYSQL_ROOT_PASSWORD: "MySql2021!"
+      MYSQL_DATABASE: "filemanager"
+      MYSQL_HOST: '0.0.0.0'
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysqldata:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+    networks:
+      - filenetwork
+  filemanager:
+    container_name: "filemanager"
+    build:
+      context: .
+      dockerfile: src/main/docker/Dockerfile.jvm
+    environment:
+      QUARKUS_DATASOURCE_JDBC_URL: 'jdbc:mysql://mysql-db:3306/filemanager'
+      QUARKUS_DATASOURCE_USERNAME: 'root'
+      QUARKUS_DATASOURCE_PASSWORD: 'MySql2021!'
+      FILEMANAGER_FOLDER: /files/
+    volumes:
+      - files_folder:/files/
+    ports:
+      - "8080:8080"
+    restart: on-failure
+    depends_on:
+      - mysql-db
+    user: "${UID}:${GID}"
+    networks:
+      - filenetwork
+
